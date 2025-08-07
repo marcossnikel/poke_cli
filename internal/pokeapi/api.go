@@ -13,6 +13,16 @@ func (c *Client) ListLocations(pageURL *string) (LocationAreaAPIResponse, error)
 		url = *pageURL
 	}
 
+	if value, ok := c.cache.Get(url); ok {
+		locations := LocationAreaAPIResponse{}
+		err := json.Unmarshal(value, &locations)
+		if err != nil {
+			return LocationAreaAPIResponse{}, nil
+		}
+
+		return locations, nil
+	}
+
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return LocationAreaAPIResponse{}, err
