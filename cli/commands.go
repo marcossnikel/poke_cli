@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -73,4 +74,70 @@ func commandExplore(cfg *Config, args ...string) error {
 	return nil
 }
 
-func commandCatch(cfg *Config, args ...string)
+func commandCatch(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a pokemon name")
+	}
+	name := args[0]
+	fmt.Printf("Throwing a Pokeball at %s...", name)
+	fmt.Println()
+
+	pokemon, err := cfg.PokeapiClient.FetchPokemon(name)
+	if pokemon.Name == "" {
+		fmt.Println("Invalid name provided, please type a valid pokemon name")
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	catch := rand.Intn(pokemon.BaseExperience) > 40
+	msg := " escaped!"
+	if !catch {
+		fmt.Println(pokemon.Name + msg)
+		return nil
+	}
+	cfg.CaughtPokemon[pokemon.Name] = pokemon
+	msg = " was caught!"
+	fmt.Println(pokemon.Name + msg)
+	fmt.Println("You may now inspect with the inspect command.")
+
+	return nil
+}
+
+func commandInspect(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a pokemon name")
+	}
+	name := args[0]
+	fmt.Printf("Throwing a Pokeball at %s...", name)
+	fmt.Println()
+
+	pokemon, hasCaught := cfg.CaughtPokemon[name]
+	if !hasCaught {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	}
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf("-%s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range pokemon.Types {
+		fmt.Printf("- %s\n", t.Type.Name)
+	}
+	return nil
+}
+
+func commandPokedex(cfg *Config, args ...string) error {
+	fmt.Println("Your Pokedex:")
+	if len(cfg.CaughtPokemon) == 0 {
+		fmt.Println("You have 0 pokeons caught!")
+		return nil
+	}
+	for _, value := range cfg.CaughtPokemon {
+		fmt.Printf("- %s\n", value.Name)
+	}
+	return nil
+}
