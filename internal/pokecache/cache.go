@@ -27,11 +27,8 @@ func (c *Cache) Add(key string, val []byte) {
 func (c *Cache) Get(key string) ([]byte, bool) {
 	c.mutex.Lock()
 	entry, ok := c.cache[key]
-	if !ok {
-		return []byte{}, false
-	}
 	c.mutex.Unlock()
-	return entry.val, true
+	return entry.val, ok
 }
 
 func (c *Cache) reapLoop(interval time.Duration) {

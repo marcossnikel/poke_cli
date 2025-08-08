@@ -26,12 +26,17 @@ func StartReplCLI(cfg *Config) {
 			continue
 		}
 		commandName := words[0]
+
+		args := []string{}
+		if len(words) > 1 {
+			args = words[1:]
+		}
 		command, ok := getCommands()[commandName]
 		if !ok {
 			fmt.Println("Unknown command")
 			continue
 		}
-		if err := command.callback(cfg); err != nil {
+		if err := command.callback(cfg, args...); err != nil {
 			fmt.Println(err)
 			continue
 		}
@@ -47,7 +52,7 @@ func cleanInput(text string) []string {
 type CLICommand struct {
 	name        string
 	description string
-	callback    func(cfg *Config) error
+	callback    func(cfg *Config, args ...string) error
 }
 
 func getCommands() map[string]CLICommand {
@@ -71,6 +76,11 @@ func getCommands() map[string]CLICommand {
 			name:        "help",
 			description: "Displays a help message",
 			callback:    commandHelp,
+		},
+		"explore": {
+			name:        "explore <location-name>",
+			description: "Explore an location to see which pokemons lives there",
+			callback:    commandExplore,
 		},
 	}
 }

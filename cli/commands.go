@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-func commandExit(cfg *Config) error {
+func commandExit(cfg *Config, args ...string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 	return nil
 }
-func commandHelp(cfg *Config) error {
+func commandHelp(cfg *Config, args ...string) error {
 	fmt.Println()
 	fmt.Println("Welcome to the Pokedex!")
 	fmt.Println("Usage:")
@@ -22,8 +22,9 @@ func commandHelp(cfg *Config) error {
 	fmt.Println()
 	return nil
 }
-func commandMap(cfg *Config) error {
+func commandMap(cfg *Config, args ...string) error {
 	locations, err := cfg.PokeapiClient.ListLocations(cfg.nextPageURL)
+
 	if err != nil {
 		return err
 	}
@@ -36,7 +37,7 @@ func commandMap(cfg *Config) error {
 
 	return nil
 }
-func commandMapBack(cfg *Config) error {
+func commandMapBack(cfg *Config, args ...string) error {
 	if cfg.previousPageURL == nil {
 		return errors.New("you're on the first page")
 	}
@@ -54,3 +55,22 @@ func commandMapBack(cfg *Config) error {
 
 	return nil
 }
+
+func commandExplore(cfg *Config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a location name")
+	}
+	name := args[0]
+	location, err := cfg.PokeapiClient.ListLocationByName(name)
+	if err != nil {
+		return err
+	}
+
+	for _, pokemon := range location.PokemonEncounters {
+		fmt.Println(pokemon.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandCatch(cfg *Config, args ...string)
