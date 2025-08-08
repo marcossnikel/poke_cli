@@ -86,3 +86,40 @@ func (c *Client) ListLocationByName(name string) (LocationAreaByNameAPIResponse,
 	c.cache.Add(url, body)
 	return pokemons, nil
 }
+
+func (c *Client) FetchPokemon(name string) (Pokemon, error) {
+	url := fmt.Sprintf("%s/pokemon/%s", BaseURL, name)
+
+	if value, ok := c.cache.Get(url); ok {
+		pokemon := Pokemon{}
+		err := json.Unmarshal(value, &pokemon)
+		if err != nil {
+			return Pokemon{}, err
+		}
+		return pokemon, nil
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return Pokemon{}, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	var pokemon Pokemon
+	err = json.Unmarshal(body, &pokemon)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	c.cache.Add(url, body)
+	return pokemon, nil
+}
